@@ -648,7 +648,7 @@ int llread(unsigned char *packet, int packetSize, int fd)
                     printf("data[%d] After dstuf= %x\n", j, dataAfterDestuffing[j]);
                     
                 }*/
-                for (int j = 0; j < aux; j++){
+                for (int j = 0; j < aux-1; j++){
                     //printf("data[%d] = %x\n", j, data[j]);
                     BCC_2_ = BCC_2_ ^ dataAfterDestuffing[j];
                     
@@ -721,7 +721,6 @@ int llread(unsigned char *packet, int packetSize, int fd)
 ////////////////////////////////////////////////
 
 void llcloseT(int fd){
-        printf("AAAAA\n");
 
 
     	unsigned char abc[5];

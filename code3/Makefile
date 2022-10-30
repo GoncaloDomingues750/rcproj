@@ -13,8 +13,8 @@ CABLE_DIR = cable/
 TX_SERIAL_PORT = /dev/ttyS10
 RX_SERIAL_PORT = /dev/ttyS11
 
-TX_FILE = penguino2.gif
-RX_FILE = penguino-received2.gif
+TX_FILE = penguino3.pdf
+RX_FILE = penguino-received3.pdf
 
 # Targets
 .PHONY: all
