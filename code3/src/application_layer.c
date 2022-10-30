@@ -195,7 +195,7 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
         FILE *fp=NULL; 
         //char *temp= malloc(50*sizeof(char)); 
         //sprintf(temp,"../%s",filename); 
-        fp=fopen("cona.jpg","rb");//read-binarymode 
+        fp=fopen("penguin.gif","rb");//read-binarymode 
           
         if(fp==NULL){ 
         perror("Unable to openfile\n"); 
@@ -273,7 +273,7 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
          //sprintf(temp,"received-%s",filename); 
          //printf("tempfilename:%s",temp); 
 
-         FILE *fp = fopen("cona-received.jpg","wb");//read-binarymode 
+         FILE *fp = fopen("penguin-received.gif","wb");//read-binarymode 
           
          if(fp==NULL){ 
             perror("Unable to open file\n");
@@ -315,8 +315,6 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
             printf("Errorreadingendcontrolpacket!"); 
          } 
          if(file_size!=file_size2)printf("Errorinpacketfilesizes"); 
-          
-         } 
          free(packet); 
     
     	closeConnection = llcloseR(fd);    
@@ -325,7 +323,10 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
             llcloseEndConnection(showStatistics, fd);
             printf("connection closed\n");
         }
-    
+          
+    } 
+        
+        
     
     
     // TODO
