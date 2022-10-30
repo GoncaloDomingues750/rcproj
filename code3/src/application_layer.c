@@ -102,7 +102,7 @@ struct infoPacket getNextPacket(FILE *fp, unsigned char seqNum){
      packet[1]=seqNum % 255; 
       
      if((bytesRead=fread(packet+4,1,DATA_FIELD_SIZE,fp))<0){ 
-     printf("Errorreadingfromfile"); 
+     printf("Error reading from file"); 
      } 
       
      packet[2]=(bytesRead & 0xFF00) >> 8; 
@@ -118,7 +118,6 @@ struct infoPacket getNextPacket(FILE *fp, unsigned char seqNum){
  int readControlPacket(enum ControlField c,struct infoPacket pi){ 
      unsigned char *packet=pi.packet; 
      
-     printf("packet[0]== %x", packet[0]);
   
      if((c==START_CTRL) && (packet[0]!=START_CTRL)){ 
         return-1;} 
@@ -195,7 +194,7 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
         FILE *fp=NULL; 
         //char *temp= malloc(50*sizeof(char)); 
         //sprintf(temp,"../%s",filename); 
-        fp=fopen("penguin.gif","rb");//read-binarymode 
+        fp=fopen(filename,"rb");//read-binarymode 
           
         if(fp==NULL){ 
         perror("Unable to openfile\n"); 
@@ -250,6 +249,7 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
       
         llcloseT(fd);
         sleep(1);
+        printf("connection closed\n");
     }
     
         
@@ -273,7 +273,7 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
          //sprintf(temp,"received-%s",filename); 
          //printf("tempfilename:%s",temp); 
 
-         FILE *fp = fopen("penguin-received.gif","wb");//read-binarymode 
+         FILE *fp = fopen(filename,"wb");//read-binarymode 
           
          if(fp==NULL){ 
             perror("Unable to open file\n");
@@ -290,7 +290,6 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
             printf("BytesRecieved %d \n", bytes_received);
             if((file_size-bytes_received)/PACKET_SIZE==0) bytes=llread(packet,(file_size - bytes_received)%PACKET_SIZE, fd); 
             else bytes=llread(packet,PACKET_SIZE, fd);
-            printf("Im hereeeee");
             pi.size=bytes; 
             pi.packet=packet; 
             bytes=parseNextPacket(pi,fp,seqNum); 
@@ -302,7 +301,7 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
          } 
           
          if(bytes_received!=file_size){ 
-            printf("Recieved different number of bytesthanfilesize.\n"); 
+            printf("Recieved different number of bytes than file size.\n"); 
          } 
           
          fclose(fp); 
@@ -312,7 +311,7 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
          struct infoPacket pi2={bytes,packet};
          int file_size2=readControlPacket(END_CTRL,pi2); 
          if(file_size2==-1){ 
-            printf("Errorreadingendcontrolpacket!"); 
+            printf("Error reading end controlpacket!"); 
          } 
          if(file_size!=file_size2)printf("Errorinpacketfilesizes"); 
          free(packet); 

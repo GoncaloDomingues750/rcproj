@@ -333,7 +333,6 @@ int llopenEstablishConnection(LinkLayer connectionParameters)
 ////////////////////////////////////////////////
 int llwrite(const unsigned char *buf, int bufSize, int fd, unsigned char *I)
 {
-    printf("Entered write \n");
     received_RR = FALSE;
       
     
@@ -491,9 +490,6 @@ int llwrite(const unsigned char *buf, int bufSize, int fd, unsigned char *I)
 		}
 	   }	
     }	
-    for(int i=0;i<26;i++){
-        printf("I= %x \n", I[i]);
-    }	
     
     printf("%d RR bytes received\n", bytes_RR_received);
     
@@ -540,7 +536,6 @@ int llread(unsigned char *packet, int packetSize, int fd)
         bytes_I_received += read(fd, buf_I_received, 1);
         if (bytes_I_received > 0){
           switch(state) {
-          printf("state= %x\n", state);
             case START:
                 printf("buf_I_received[0] FLAG = %x\n", buf_I_received[0]);
                 if (buf_I_received[0] == FLAG) {
@@ -565,18 +560,14 @@ int llread(unsigned char *packet, int packetSize, int fd)
 
             case A_RCV:
                 printf("buf_I_received[0] C_I = %x\n", buf_I_received[0]);
-                 printf("buf_I_received[0] C_I2 = %x\n", (C_I ^ (Ns<<6)));
 
                 if (buf_I_received[0] == (C_I ^ (Ns<<6))) {
-                    printf("Estou aqui!\n");
                     state = C_RCV;
                 }
                 else if (buf_I_received[0] == FLAG) {
-                    printf("Estou aqui!2\n");
                     state = FLAG_RCV;
                 }
                 else {
-                    printf("Estou aqui3\n");
                     state = START;
                 }
 
@@ -597,7 +588,6 @@ int llread(unsigned char *packet, int packetSize, int fd)
                 break;
                 
              case BCC_OK:
-                printf("I = %d\n", i);
                 printf("buf_I_received[0] DATA = %x\n", buf_I_received[0]);
                 dataBeforeDestuffing[i] = buf_I_received[0];
 		if (dataBeforeDestuffing[i] == FLAG){
@@ -654,12 +644,7 @@ int llread(unsigned char *packet, int packetSize, int fd)
                     
                 }
                 
-                printf("BBC_2= %x\n", BCC_2);
-                printf("BBC_2_= %x\n", BCC_2_);
-                
-                if (BCC_2 == BCC_2_){
-                    printf("Entered MAE DO MARCOS");
-                    
+                if (BCC_2 == BCC_2_){                    
                     state = BCC_2_received;
                 }
                 
