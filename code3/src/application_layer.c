@@ -17,7 +17,7 @@
 #define TRUE 1
 
 
-#define BLOCK_SIZE 512
+#define BLOCK_SIZE 128
 #define PACKET_SIZE (4*BLOCK_SIZE)
 #define DATA_FIELD_SIZE (PACKET_SIZE - 4)
 #define S_FRAME_SIZE 7
@@ -68,6 +68,7 @@ struct infoPacket makeControlPacket(enum ControlField c, int file_size){
         default: 
         break; 
      } 
+
       
      packet[1] = 0x00; //type:filesize 
      int octate_num=0; 
@@ -75,15 +76,15 @@ struct infoPacket makeControlPacket(enum ControlField c, int file_size){
       
      while(file_size_copy!=0) 
      { 
-     octate_num++; 
-     file_size_copy=file_size_copy >> 8; 
+        octate_num++; 
+        file_size_copy=file_size_copy >> 8;
      } 
       
-     packet[2] = octate_num; 
+     packet[2] = octate_num;
       
       
      for(int i=1;i<=octate_num;i++){ 
-     packet[2+i]=(file_size>>(8*(octate_num-i))&0xff); 
+        packet[2+i]=(file_size>>(8*(octate_num-i))&0xff); 
      } 
       
      pi.packet=packet; 
@@ -120,7 +121,6 @@ struct infoPacket getNextPacket(FILE *fp, unsigned char seqNum){
      printf("packet[0]== %x", packet[0]);
   
      if((c==START_CTRL) && (packet[0]!=START_CTRL)){ 
-        printf("Entered here with cpacket!");
         return-1;} 
      if(c==END_CTRL && packet[0]!=END_CTRL)return-1; 
      if(c==DATA)return-1;     
@@ -188,16 +188,14 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
     unsigned char seqNum=0;
    
     if (connectionParameters.role == LlTx){
-        printf("AAA");
             
 	    llopenT(fd);
         //read/write packet
-        printf("AAA");
         
         FILE *fp=NULL; 
         //char *temp= malloc(50*sizeof(char)); 
         //sprintf(temp,"../%s",filename); 
-        fp=fopen("penguin.gif","rb");//read-binarymode 
+        fp=fopen("penguino2.gif","rb");//read-binarymode 
           
         if(fp==NULL){ 
         perror("Unable to openfile\n"); 
@@ -215,6 +213,7 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
         unsigned char I[pi.size];
         ctrlPacketSize = pi.size;
         bytes=llwrite(pi.packet,pi.size, fd, &I);
+        int tbytes = 0;
 
         while(TRUE) 
         { 
@@ -224,18 +223,21 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
             unsigned char I1[packet_size];
              
             if(packet_size>DATA_PACKET_HEADER){ 
-            bytes=llwrite(packet,packet_size,fd, &I1); 
+            printf("Packet size is: %d \n", packet_size);
+            bytes=llwrite(packet,packet_size,fd, &I1);
             printf("%d",bytes); 
             } 
             else{ 
             break; 
-        } 
+            } 
           
-        free(packet); 
+            free(packet); 
           
-        if(bytes==-1) return; 
+            if(bytes==-1) return; 
+            tbytes += bytes;
           
             seqNum++; 
+            printf("Sent bytes: %d\n", tbytes);
         } 
           
         fclose(fp); 
@@ -253,16 +255,13 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
         
     if (connectionParameters.role == LlRx){
     	llopenR(fd);
-        printf("AAAA");
         packet= malloc(PACKET_SIZE*sizeof(unsigned char));//usar realloc no llread 
   
          //read start packet 
-         printf("pi.packet[0] == %d",ctrlPacketSize);
          bytes=llread(packet,1, fd);
-         printf("pi.packet[0] == %d",bytes);
          struct infoPacket pi={bytes,packet}; 
-         printf("pi.packet[0] == %d",pi.size);
          int file_size= readControlPacket(START_CTRL,pi);
+         printf("Filesize: %d \n", file_size);
           
          if(file_size==-1){ 
          printf("Error reading startcontrol packet!"); 
@@ -274,12 +273,11 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
          //sprintf(temp,"received-%s",filename); 
          //printf("tempfilename:%s",temp); 
 
-         FILE*fp=NULL; 
-          fp=fopen("penguin.gif","wb");//read-binarymode 
+         FILE *fp = fopen("penguino-received2.gif","wb");//read-binarymode 
           
          if(fp==NULL){ 
-         perror("Unabletoopenfile\n"); 
-         return; 
+            perror("Unable to open file\n");
+            return; 
          } 
           
          free(temp); 
@@ -288,19 +286,23 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
          int bytes_received=0; 
          while(bytes_received<file_size) 
          { 
+            printf("packet[0] == %d \n",packet[0]);
+            printf("BytesRecieved %d \n", bytes_received);
             if((file_size-bytes_received)/PACKET_SIZE==0) bytes=llread(packet,(file_size - bytes_received)%PACKET_SIZE, fd); 
-            else bytes=llread(packet,PACKET_SIZE, fd); 
+            else bytes=llread(packet,PACKET_SIZE, fd);
+            printf("Im hereeeee");
             pi.size=bytes; 
             pi.packet=packet; 
             bytes=parseNextPacket(pi,fp,seqNum); 
             printf("\n\nBytes:%d",bytes); 
-            bytes_received+=bytes; 
+            bytes_received+=(bytes); 
             printf("\nBytesreceived:%d\n",bytes_received); 
             seqNum++; 
+
          } 
           
          if(bytes_received!=file_size){ 
-         printf("Recieved different number of bytesthanfilesize.\n"); 
+            printf("Recieved different number of bytesthanfilesize.\n"); 
          } 
           
          fclose(fp); 

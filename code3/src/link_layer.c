@@ -334,9 +334,8 @@ int llopenEstablishConnection(LinkLayer connectionParameters)
 int llwrite(const unsigned char *buf, int bufSize, int fd, unsigned char *I)
 {
     printf("Entered write \n");
-    for (int i = 4; i < 4 + bufSize; i++){
-        printf("%x\n", buf[i-4]);
-    }    
+    received_RR = FALSE;
+      
     
     
 
@@ -347,7 +346,7 @@ int llwrite(const unsigned char *buf, int bufSize, int fd, unsigned char *I)
         buf7[i-4] = buf[i-4];
     }
 
-    unsigned char BCC_2;
+    unsigned char BCC_2=0x00;
     printf("BCC_2 = %x\n", BCC_2);
     I[0] = FLAG;
     I[1] = A;
@@ -361,37 +360,34 @@ int llwrite(const unsigned char *buf, int bufSize, int fd, unsigned char *I)
         printf("%x\n", buf7[i-4]);
     }
     
-    printf("BCC_22 = %x\n", BCC_2);
     
     int k_stuf = 4;
    
 
     
     for (int i = 4; i < 4 + bufSize; i++){
-        printf("buf7 = %x\n", buf7[i-4]);
+        
         if (buf7[i-4] == 0x7e){
             I[k_stuf] = 0x7d;
-            printf("I[k_stuf]1 =  %x\n", I[k_stuf]);
             k_stuf++;
             I[k_stuf] = 0x5e;
-            printf("I[k_stuf]1 =  %x\n", I[k_stuf]);
-            printf("buf2 = %x\n", buf7[i-3]);
+            
         }
         else if (buf7[i-4] == 0x7d){
             I[k_stuf] = 0x7d;
-            printf("I[k_stuf]2 =  %x\n", I[k_stuf]);
+           
             k_stuf++;
             I[k_stuf] = 0x5d;
-            printf("I[k_stuf]2 =  %x\n", I[k_stuf]);
+            
         }
         else{
-            printf("i = %d\n",i);
+            
             I[k_stuf] = buf7[i-4];
-            printf("I[k_stuf]3 =  %x\n", I[k_stuf]);
+            
         }
         j = k_stuf;
         k_stuf++;
-        printf("k_stuf = %d\n", k_stuf);
+        
     }
     
     
@@ -430,7 +426,7 @@ int llwrite(const unsigned char *buf, int bufSize, int fd, unsigned char *I)
 		    switch(state) {
 			case START:
 			    if (buf_RR_received[0] == FLAG) {
-			    	printf("AAAAAAAAAAAAAA1");
+			    	
 				state = FLAG_RCV;
 			    }
 			    
@@ -438,7 +434,7 @@ int llwrite(const unsigned char *buf, int bufSize, int fd, unsigned char *I)
 
 			case FLAG_RCV:
 			    if (buf_RR_received[0] == A) {
-			       printf("AAAAAAAAAAAAAA2");
+			      
 			       state = A_RCV;
 			    }
 			    else if (buf_RR_received[0] == FLAG) {
@@ -453,7 +449,7 @@ int llwrite(const unsigned char *buf, int bufSize, int fd, unsigned char *I)
 			case A_RCV: 
 			    printf("Nr = %d", Nr);
 			    if (buf_RR_received[0] == (C_RR ^ (Nr<<7))) {
-			    	printf("AAAAAAAAAAAAAA3");
+			    	
 				state = C_RCV;
 			    } 
 			    /*else if (buf_RR_received[0] == (C_REJ(Nr<<7)){
@@ -494,19 +490,22 @@ int llwrite(const unsigned char *buf, int bufSize, int fd, unsigned char *I)
 		    }
 		}
 	   }	
-    }		
+    }	
+    for(int i=0;i<26;i++){
+        printf("I= %x \n", I[i]);
+    }	
     
     printf("%d RR bytes received\n", bytes_RR_received);
     
     if (received_RR == FALSE){ //what happens in this case?
-    
+
         exit(1);
  
     }
    
     Ns^=1;
     Nr^=1;
-    return bytes_I_sent;
+    return (bytes_I_sent - 6);
 }
 
 ////////////////////////////////////////////////
@@ -532,6 +531,9 @@ int llread(unsigned char *packet, int packetSize, int fd)
     int i = 0;
     
     unsigned char buf_I_received[1] = {0};
+    unsigned char dataAfterDestuffing[packetSize*2+2];
+    int aux = 0;
+
     
     state = START;
     while (state != STOPS) {
@@ -563,13 +565,18 @@ int llread(unsigned char *packet, int packetSize, int fd)
 
             case A_RCV:
                 printf("buf_I_received[0] C_I = %x\n", buf_I_received[0]);
+                 printf("buf_I_received[0] C_I2 = %x\n", (C_I ^ (Ns<<6)));
+
                 if (buf_I_received[0] == (C_I ^ (Ns<<6))) {
+                    printf("Estou aqui!\n");
                     state = C_RCV;
                 }
                 else if (buf_I_received[0] == FLAG) {
+                    printf("Estou aqui!2\n");
                     state = FLAG_RCV;
                 }
                 else {
+                    printf("Estou aqui3\n");
                     state = START;
                 }
 
@@ -596,8 +603,8 @@ int llread(unsigned char *packet, int packetSize, int fd)
 		if (dataBeforeDestuffing[i] == FLAG){
 		    BCC_2 = dataBeforeDestuffing[i - 1];
 		    FLAG2 = dataBeforeDestuffing[i];
-		    printf ("BCC_2 = %x\n", BCC_2);
-		    printf("FLAG2 = %x\n", FLAG2);
+		    //printf ("BCC_2 = %x\n", BCC_2);
+		    //printf("FLAG2 = %x\n", FLAG2);
 		}
 		
 		else{		    
@@ -616,30 +623,43 @@ int llread(unsigned char *packet, int packetSize, int fd)
             case DATA_received:
                 //printf ("packet size = %d", packetSize);
                 //printf("buf_I_received[0] BCC_2 = %x\n", packet[0]);
-                printf ("i = %d\n", i);
+                //printf ("i = %d\n", i);
                 for (int j = 0; j < i-1; j++){
                     //printf("data[%d]= %x\n", j, dataBeforeDestuffing[j]);
-                    if (dataBeforeDestuffing[j] == 0x5e){
-                        dataBeforeDestuffing[j-1] = 0x7e;
-                        dataBeforeDestuffing[j] = 0x00;
+                    if (dataBeforeDestuffing[j] == 0x7d){
+                        j++;
+                        if (dataBeforeDestuffing[j] == 0x5e){
+                            dataAfterDestuffing[aux] = 0x7e;
+                        }
+                        else if (dataBeforeDestuffing[j] == 0x5d) {
+                            dataAfterDestuffing[aux] = 0x7d;
+                        }
                     }
-                    else if (dataBeforeDestuffing[j] == 0x5d){
-                        dataBeforeDestuffing[j] = 0x00;
+                    else{
+                         dataAfterDestuffing[aux] = dataBeforeDestuffing[j];
                     }
+                    aux++;
+
                     
                     //printf("j = %d\n", j);
                     
                 }
-                for (int j = 0; j < i-1; j++){
+                /*for (int j = 0; j < i-1; j++){
+                    printf("data[%d] After dstuf= %x\n", j, dataAfterDestuffing[j]);
+                    
+                }*/
+                for (int j = 0; j < aux; j++){
                     //printf("data[%d] = %x\n", j, data[j]);
-                    BCC_2_ = BCC_2_ ^ dataBeforeDestuffing[j];
+                    BCC_2_ = BCC_2_ ^ dataAfterDestuffing[j];
                     
                 }
                 
-                printf("BCC_2_ = %x\n", BCC_2_);
+                printf("BBC_2= %x\n", BCC_2);
+                printf("BBC_2_= %x\n", BCC_2_);
                 
                 if (BCC_2 == BCC_2_){
-                    printf("BCC_2_ = %x\n", BCC_2_);
+                    printf("Entered MAE DO MARCOS");
+                    
                     state = BCC_2_received;
                 }
                 
@@ -692,9 +712,8 @@ int llread(unsigned char *packet, int packetSize, int fd)
     
     int bytes_RR_written = write(fd, RR, 5);
     printf("%d RR bytes written\n", bytes_RR_written);
-    
-
-    return bytes_I_received;
+    memcpy(packet, dataAfterDestuffing, packetSize+6);
+    return (bytes_I_received + 4);
 }
 
 ////////////////////////////////////////////////
