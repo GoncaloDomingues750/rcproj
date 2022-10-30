@@ -195,7 +195,7 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
         FILE *fp=NULL; 
         //char *temp= malloc(50*sizeof(char)); 
         //sprintf(temp,"../%s",filename); 
-        fp=fopen("penguino3.pdf","rb");//read-binarymode 
+        fp=fopen("cona.jpg","rb");//read-binarymode 
           
         if(fp==NULL){ 
         perror("Unable to openfile\n"); 
@@ -273,7 +273,7 @@ void applicationLayer(const char *serialPort, const char *role, int baudRate,
          //sprintf(temp,"received-%s",filename); 
          //printf("tempfilename:%s",temp); 
 
-         FILE *fp = fopen("penguino-received3.pdf","wb");//read-binarymode 
+         FILE *fp = fopen("cona-received.jpg","wb");//read-binarymode 
           
          if(fp==NULL){ 
             perror("Unable to open file\n");
